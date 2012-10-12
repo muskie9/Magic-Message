@@ -1,17 +1,15 @@
 <?php
 
-	class MagicMessageSiteTreeExtension extends DataObjectDecorator{
+	class MagicMessageSiteTreeExtension extends DataExtension{
 		
-		function extraStatics(){
-			return array(
-				'db' => array(
-					'HideMessages' => 'Boolean'
-				),
-				'has_one' => array(
-					'MagicMessage' => 'MagicMessage'
-				)
-			);
-		}
+		static $db = array(
+			'HideMessages' => 'Boolean'
+		);
+		
+		static $has_one = array(
+			'MagicMessage' => 'MagicMessage'
+		);
+
 		
 		public function updateCMSFields(FieldList $fields) {
 			
