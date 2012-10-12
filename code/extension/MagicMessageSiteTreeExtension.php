@@ -16,11 +16,14 @@
 			$manager = new DropdownField(
 				'MagicMessageID',
 				'Magic Message',
-				DataObject::get('MagicMessage')->map('ID','Title','Select a message to show')
+				DataObject::get('MagicMessage')->map('ID','Title'),
+				'',
+				'',
+				'Select a message to display'
 			);
 			
 			// show messages
-			$fields->addFieldToTab('Root.Content.Message', $manager);
+			$fields->addFieldToTab('Root.Message', $manager);
 	
 		}
 		

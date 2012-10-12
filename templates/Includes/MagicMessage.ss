@@ -2,7 +2,7 @@
 <% require css(magicmessage/css/message.css) %>
 <% control MagicMessage %>
 <div id="magic-message-container">
-	<div id="magic-message" class="typography" <% if Options %>data-widget-plugin-opts=""<% end_if %>>
+	<div id="magic-message" class="typography" <% if Options %>data-magic-message-options="{"<% control Options %>{$Option}":"{$Value}<% end_control %>"}"<% end_if %>>
 			<a href="#" id="messageclose">Close</a>
 			<h3>$Title</h3>
 			$Message

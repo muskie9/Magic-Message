@@ -6,65 +6,76 @@ if (typeof navigator.cookieEnabled=="undefined" && !cookieEnabled){
 	cookieEnabled=(document.cookie.indexOf("testcookie")!=-1)? true : false
 }
 
-if(typeof Object.create !== 'function'){
-	Object.create = function(obj){
-		function F(){};
-		F.prototype = obj;
-		return new F();
-	}
-}
-
 //need to add click functions for hide and rememberHide
 ;(function($,window,document,undefined) {
-
-	var Message = {
-		init: function(options,elem){
-			var self = this;
-			self.elem = elem;
-			self.$elem = $(elem);
+	"use strict";
+	
+	var name = 'magic-message';
+	
+	function Message(elem, options) {
+		this.$elem = $(elem);
+		
+		this.defaults = {
+			delay: 500,
+			speed: 750,
+			position: 'topRight',
+			rounded: false,
+			hideExpiry: 90,//in days
+			messageCookie: 'magicMessage',
+			showCallback: function(){},
+			hideCallback: function(){}
+		};
+		
+		var meta = this.$elem.data(name+'-options');
+		this.options = $.extend(this.defaults,options,meta);
+		
+		this.$elem.data(name,this);
+		
+		this.$close = this.$elem.find('#messageclose');
+		this.$hide = this.$elem.find('#nomessage');
+		
+		this.init();
 			
-			if(typeof options === 'string'){
-				
-			}else{
-				self.delay = options.delay;
-				self.speed = options.speed;
-				self.position = options.position;
-				self.rounded = options.rounded;
-			}
-			self.options = $.extend({},$.fn.message.options, options);
-			if(!readCookie('hideMessage')){
-				self.show();
-			}
-			
-		},
-		show: function(){
-			this.$elem.delay(this.delay).animate({'right':10},this.speed, this.showCallback);
-		},
-		hide: function(e){
-			e.preventDefault();
-			this.$elem.animate({'right':-450},this.speed);
-		},
-		rememberHide: function(e){
-			e.preventDefault();
-			this.$elem.animate({'right':-450},this.speed);
-			createCookie('hideMessage',true,90);
+	}
+	
+	Message.prototype.init = function(){
+		var self = this;
+		
+		//add entering action here
+		if(cookieEnabled==false){//check that cookies are enabled
+			$('#nomessage').hide();
+		}else if(!readCookie('hideMessage')){//check if cookie exists/is valid
+			$('#magic-message').delay(this.options.delay).animate({'right':10}, this.options.speed, this.options.showCallback);
+		}else{
+			$('#magic-message-container').hide();
 		}
-	};
+		
+		this.$close.on('click.'+name,function(e){
+			e.preventDefault();
+			self.hideMessage();
+		});
+		
+		this.$hide.on('click.'+name,function(e){
+			e.preventDefault();
+			self.rememberHideMessage();
+		});
+		
+	}
+	
+	Message.prototype.hideMessage = function(){
+		this.$elem.animate({'right':-450},this.options.speed,this.options.hideCallback);
+	}
+	
+	Message.prototype.rememberHideMessage = function(){
+		this.$elem.animate({'right':-450},this.options.speed,this.options.hideCallback);
+		createCookie(this.options.messageCookie,true,this.options.hideExpiry);
+	}
 		
 	$.fn.message = function(options) {
 		return this.each(function(){
-			var message = Object.create(Message);
-			message.init(options,this);
+			new Message(this, options);
 		});
 	};
-	
-	$.fn.message.options = {
-		delay: 500,
-		speed: 750,
-		position: 'topRight',
-		rounded: false
-	};
-
 
 })(jQuery,window,document);
 
@@ -73,9 +84,10 @@ $('#magic-message').message({
 	speed: 500
 });
 
-
+console.log($('#magic-message').data('magic-message'));
 
 function createCookie(name,value,days) {
+	console.log(name+','+value+','+days);
 	if (days) {
 		var date = new Date();
 		date.setTime(date.getTime()+(days*24*60*60*1000));
