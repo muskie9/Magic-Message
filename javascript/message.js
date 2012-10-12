@@ -6,33 +6,74 @@ if (typeof navigator.cookieEnabled=="undefined" && !cookieEnabled){
 	cookieEnabled=(document.cookie.indexOf("testcookie")!=-1)? true : false
 }
 
-$(window).load(function(){
-	
-	if(cookieEnabled==false){//check that cookies are enabled
-		$('#nomessage').hide();
-	}else if(!readCookie('hideMessage')){//check if cookie exists/is valid
-		$('#magic-message').delay(500).animate({'right':10}, 750);
-	}else{
-		$('#magic-message-container').hide();
+if(typeof Object.create !== 'function'){
+	Object.create = function(obj){
+		function F(){};
+		F.prototype = obj;
+		return new F();
 	}
-	
-	$('#page, #footer').css({'position':'relative','z-index':5});
-	
-	
-	$('#messageclose').click(function(e){
-		e.preventDefault();
-		$('#magic-message').animate({'right':-450},750, function(){
+}
+
+//need to add click functions for hide and rememberHide
+;(function($,window,document,undefined) {
+
+	var Message = {
+		init: function(options,elem){
+			var self = this;
+			self.elem = elem;
+			self.$elem = $(elem);
 			
+			if(typeof options === 'string'){
+				
+			}else{
+				self.delay = options.delay;
+				self.speed = options.speed;
+				self.position = options.position;
+				self.rounded = options.rounded;
+			}
+			self.options = $.extend({},$.fn.message.options, options);
+			if(!readCookie('hideMessage')){
+				self.show();
+			}
+			
+		},
+		show: function(){
+			this.$elem.delay(this.delay).animate({'right':10},this.speed, this.showCallback);
+		},
+		hide: function(e){
+			e.preventDefault();
+			this.$elem.animate({'right':-450},this.speed);
+		},
+		rememberHide: function(e){
+			e.preventDefault();
+			this.$elem.animate({'right':-450},this.speed);
+			createCookie('hideMessage',true,90);
+		}
+	};
+		
+	$.fn.message = function(options) {
+		return this.each(function(){
+			var message = Object.create(Message);
+			message.init(options,this);
 		});
-	});
+	};
 	
-	$('#nomessage').click(function(a){
-		a.preventDefault();
-		$('#magic-message').animate({'right':-450},750);
-		createCookie('hideMessage',true,90);
-	});
-	
+	$.fn.message.options = {
+		delay: 500,
+		speed: 750,
+		position: 'topRight',
+		rounded: false
+	};
+
+
+})(jQuery,window,document);
+
+$('#magic-message').message({
+	delay: 1000,
+	speed: 500
 });
+
+
 
 function createCookie(name,value,days) {
 	if (days) {
@@ -58,88 +99,3 @@ function readCookie(name) {
 function eraseCookie(name) {
 	createCookie(name,"",-1);
 }
-
-/*;(function($, doc, win) {
-	"use strict";
-	
-	var name = 'message-clip';
-	
-	function Message(el, opts) {
-		//keep track of passed DOM elements
-		this.$el  = $(el);
-		this.opts = opts;
-		
-		//set defaults
-		this.defaults = {
-			delay: 500,//time before entering
-			speed: 750,//animation time (enter and exit)
-			position: 'topRight',//animation position (topRight, bottomRight, bottomLeft, topLeft)
-			backgroundColor: '#FFFFEB',//background color of message box
-			//backgroundImage: null,//background image
-			borderStyle: 'solid',
-			borderWidth: 1,
-			borderColor: null,
-			color: '#17365D',
-			rounded: false,
-			showCallback: function(){},
-			hideCallback: function(){}
-		};
-		
-		var meta  = this.$el.data(name+'-opts');
-		this.opts = $.extend(this.defaults, opts, meta);
-		this.$el.data(name, this);
-		
-		//keep track of sub-elements for performance
-		this.$message = this.$el.find('.message');
-		this.$close = this.$el.find('.message-close');
-		this.$remember = this.$el.find('.no-message');
-		
-		this.init();
-	}
-	
-	message.prototype.init = function() {
-		var self = this;
-		var opts = this.opts;
-		
-		var cookieName = 'hideMessage';//cookie name
-		var cookieValue = true;//cookie value
-		var cookieExpiry = 90;//cookie expiry in days
-		
-		window.on('load', function(){
-			self.showbox();
-		});
-		
-		this.$close.on('click.'+name, function(e){
-			e.preventDefault();
-			self.hideBox();
-		});
-	};
-		
-	//show box
-	message.prototype.showBox = function(){
-		this.$message.delay(opts.delay).animate({'right':0}, speed, showCallback);
-	}
-	
-	//hide box
-	message.prototype.hideBox = function(){
-		this.$message.animate({'right':-450}, speed, hideCallback);
-	}
-	
-	//remember hide
-	message.prototype.rememberHide = function(){
-		dontShow(cookieName,cookieValue,cookieExpiry);
-	}
-	
-	$.fn.message = function(opts) {
-		return this.each(function() {
-		new message(this, opts);
-	});
-};
-
-})(jQuery, document, window);
-
-$('#message').message();
-
-console.log($('#mywidget').data('message-clip'));
-*/
-
